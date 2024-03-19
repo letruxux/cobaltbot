@@ -56,9 +56,10 @@ bot = Bot()
 
 
 async def handle_cmd(ctx: commands.Context, url: str, audio: bool):
-    resp = await get_video(url, audio=audio)
-    data = await resp.json()
-    if data.get("status") == "success":
+    resp_text, status = await get_video(url, audio=audio)
+    data = json.loads(resp_text)
+    print(data)
+    if data.get("status") == "success" or data.get("status") == "stream":
         url = data.get("url")
         view = DownloadView(url)
 
@@ -67,7 +68,9 @@ async def handle_cmd(ctx: commands.Context, url: str, audio: bool):
         await view.expire(message)
     else:
         await ctx.reply(
-            f"{markdownify(data.get('text', ""), heading_style='ATX')} (`{resp.status}`)"
+            "{} (`{}`)".format(
+                markdownify(data.get("text", ""), heading_style="ATX"), status
+            )
         )
 
 
@@ -80,9 +83,8 @@ async def get_video(url, audio: bool = False):
         "vCodec": "h264",
         "filenamePattern": "basic",
         "twitterGif": "true",
+        "isAudioOnly": "true" if audio else "false",
     }
-    if audio:
-        data["isAudioOnly"] = "true"
 
     async with bot.session.post(
         "https://co.wuk.sh/api/json",
@@ -93,7 +95,7 @@ async def get_video(url, audio: bool = False):
             "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36",
         },
     ) as response:
-        return response
+        return (await response.text()), response.status
 
 
 @bot.command(aliases=["aud"])
@@ -109,6 +111,7 @@ async def video(ctx: commands.Context, url: str):
 @bot.command()
 async def help(ctx: commands.Context):
     embed = discord.Embed(
+        url="https://github.com/letruxux/cobaltbot",
         title="info and commands.",
         color=c.random(),
         description=f"@{bot.user.name} is an unofficial bot that uses [cobalt]({PUBLIC_SITE_URL})'s api.\nsee the supported services [here](https://github.com/wukko/cobalt#supported-services)",
