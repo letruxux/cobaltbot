@@ -67,7 +67,7 @@ async def handle_cmd(ctx: commands.Context, url: str, audio: bool):
         await view.expire(message)
     else:
         await ctx.reply(
-            f"{markdownify(data.get('text'), heading_style='ATX')} (`{resp.status}`)"
+            f"{markdownify(data.get('text', ""), heading_style='ATX')} (`{resp.status}`)"
         )
 
 
@@ -124,12 +124,14 @@ async def help(ctx: commands.Context):
 @video.error
 @audio.error
 async def handle_exc(ctx: commands.Context, e: commands.CommandError):
-    log.error(e)
     msg = str(e)
     if isinstance(e, json.JSONDecodeError):
         msg = "api returned a captcha, its not your fault. please contact @letruxux about this"
 
     await ctx.reply(f"there was an error with your command: `{msg}`")
+
+    # for better debugging
+    raise e
 
 
 bot.run(environ["TOKEN"])
