@@ -58,7 +58,6 @@ bot = Bot()
 async def handle_cmd(ctx: commands.Context, url: str, audio: bool):
     resp_text, status = await get_video(url, audio=audio)
     data = json.loads(resp_text)
-    print(data)
     if data.get("status") == "success" or data.get("status") == "stream":
         url = data.get("url")
         view = DownloadView(url)
@@ -83,7 +82,7 @@ async def get_video(url, audio: bool = False):
         "vCodec": "h264",
         "filenamePattern": "basic",
         "twitterGif": "true",
-        "isAudioOnly": "true" if audio else "false",
+        "isAudioOnly": audio,
     }
 
     async with bot.session.post(
