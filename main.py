@@ -86,7 +86,7 @@ async def get_video(url, audio: bool = False):
     }
 
     async with bot.session.post(
-        "https://co.wuk.sh/api/json",
+        "https://api.cobalt.tools/api/json",
         json=data,
         headers={
             "Accept": "application/json",
